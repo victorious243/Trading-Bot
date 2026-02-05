@@ -64,6 +64,10 @@ input bool Enable_XAUUSD = true;
 input bool Enable_XAGUSD = true;
 input bool Enable_EURUSD = false;
 input bool Enable_GBPUSD = false;
+input bool Enable_USDJPY = false;
+
+// Allowed symbols (trade only chart symbol, but whitelist input)
+input string Allowed_Symbols = "XAUUSD,EURUSD,GBPUSD,USDJPY";
 
 // Very selective mode
 enum TradeMode { CONSERVATIVE=0, BALANCED=1, ACTIVE=2 };
@@ -184,6 +188,24 @@ bool SymbolEnabled()
    if(StringFind(sym, "XAG") >= 0) return Enable_XAGUSD;
    if(StringFind(sym, "EURUSD") >= 0) return Enable_EURUSD;
    if(StringFind(sym, "GBPUSD") >= 0) return Enable_GBPUSD;
+   if(StringFind(sym, "USDJPY") >= 0) return Enable_USDJPY;
+   return false;
+}
+
+bool SymbolInWhitelist()
+{
+   string sym = StringUpper(_Symbol);
+   string list = StringUpper(Allowed_Symbols);
+   list = StringReplace(list, " ", "");
+   int p = 0;
+   while(true)
+   {
+      int comma = StringFind(list, ",", p);
+      string token = (comma == -1) ? StringSubstr(list, p) : StringSubstr(list, p, comma - p);
+      if(token == sym) return true;
+      if(comma == -1) break;
+      p = comma + 1;
+   }
    return false;
 }
 
@@ -358,6 +380,7 @@ ScoreBreakdown GetSetupScore(bool buy, double rsi, double macd_main, double macd
 
 bool IsTradeAllowed()
 {
+   if(!SymbolInWhitelist()) { g_last_lock_reason = "SYMBOL_NOT_ALLOWED"; return false; }
    if(!SymbolEnabled()) { g_last_lock_reason = "SYMBOL_DISABLED"; return false; }
    if(DailyLimitsHit()) { g_last_lock_reason = "DAILY_LIMIT"; return false; }
    if(DrawdownHit()) { g_last_lock_reason = "DRAWDOWN"; return false; }

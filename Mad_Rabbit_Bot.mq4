@@ -55,6 +55,13 @@ input double Risk_Multiplier_XAU      = 1.0;  // 50% portfolio focus
 input double Risk_Multiplier_XAG      = 0.7;  // 20% portfolio focus
 input double Risk_Multiplier_FX       = 0.6;  // 30% portfolio focus
 
+// Symbol enable toggles
+input bool Enable_XAUUSD = true;
+input bool Enable_XAGUSD = true;
+input bool Enable_EURUSD = false;
+input bool Enable_GBPUSD = false;
+input bool Enable_USDJPY = false;
+
 // Allowed symbols (trade only chart symbol, but whitelist input)
 input string Allowed_Symbols          = "XAUUSD,EURUSD,GBPUSD,USDJPY";
 
@@ -130,6 +137,17 @@ double PipSize(const string symbol)
    int digits = (int)MarketInfo(symbol, MODE_DIGITS);
    if(digits == 3 || digits == 5) return point * 10.0;
    return point;
+}
+
+bool SymbolEnabled()
+{
+   string sym = _Symbol;
+   if(StringFind(sym, "XAU") >= 0) return Enable_XAUUSD;
+   if(StringFind(sym, "XAG") >= 0) return Enable_XAGUSD;
+   if(StringFind(sym, "EURUSD") >= 0) return Enable_EURUSD;
+   if(StringFind(sym, "GBPUSD") >= 0) return Enable_GBPUSD;
+   if(StringFind(sym, "USDJPY") >= 0) return Enable_USDJPY;
+   return false;
 }
 
 bool SymbolInWhitelist()
@@ -345,7 +363,8 @@ ScoreBreakdown GetSetupScore(bool buy, double rsi, double macd_main, double macd
 
 bool IsTradeAllowed()
 {
-   if(!SymbolInWhitelist()) { g_last_lock_reason = "SYMBOL_DISABLED"; return false; }
+   if(!SymbolInWhitelist()) { g_last_lock_reason = "SYMBOL_NOT_ALLOWED"; return false; }
+   if(!SymbolEnabled()) { g_last_lock_reason = "SYMBOL_DISABLED"; return false; }
    if(DailyLimitsHit()) { g_last_lock_reason = "DAILY_LIMIT"; return false; }
    if(DrawdownHit()) { g_last_lock_reason = "DRAWDOWN"; return false; }
    if(!IsInSession()) { g_last_lock_reason = "OUT_OF_SESSION"; return false; }
