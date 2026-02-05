@@ -151,6 +151,29 @@ string UrlEncode(const string text)
    return out;
 }
 
+string ToUpperCopy(const string text)
+{
+   string out = "";
+   for(int i=0; i<StringLen(text); i++)
+   {
+      ushort c = StringGetCharacter(text, i);
+      if(c >= 'a' && c <= 'z') c = c - 32;
+      out += (string)CharToString((uchar)c);
+   }
+   return out;
+}
+
+string RemoveSpacesCopy(const string text)
+{
+   string out = "";
+   for(int i=0; i<StringLen(text); i++)
+   {
+      ushort c = StringGetCharacter(text, i);
+      if(c != ' ') out += (string)CharToString((uchar)c);
+   }
+   return out;
+}
+
 bool TelegramSend(const string msg)
 {
    if(!Telegram_Enable) return false;
@@ -194,9 +217,8 @@ bool SymbolEnabled()
 
 bool SymbolInWhitelist()
 {
-   string sym = StringToUpper(_Symbol);
-   string list = StringToUpper(Allowed_Symbols);
-   StringReplace(list, " ", "");
+   string sym = ToUpperCopy(_Symbol);
+   string list = RemoveSpacesCopy(ToUpperCopy(Allowed_Symbols));
    int p = 0;
    while(true)
    {
