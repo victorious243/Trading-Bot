@@ -36,7 +36,7 @@ input double Min_TP_Pips             = 60.0;
 input double Max_TP_Pips             = 80.0;
 input double Min_RR                  = 2.0;
 
-input double Max_Spread_Pips_Metals  = 20.0;
+input double Max_Spread_Pips_Metals  = 35.0;
 input double Max_Spread_Pips_FX      = 2.0;
 input double ATR_Min_Pips            = 10.0;
 input double ATR_Max_Pips            = 200.0;
@@ -95,8 +95,8 @@ input int    Telegram_Min_IntervalSec = 30;
 input bool   Enable_AI_Signals        = false;
 input bool   AI_Use_Only_Mode         = true;
 enum AIProvider { AI_PROVIDER_RELAY=0, AI_PROVIDER_OPENAI=1 };
-input AIProvider AI_Provider          = AI_PROVIDER_RELAY;
-input string AI_Endpoint              = "";
+input AIProvider AI_Provider          = AI_PROVIDER_OPENAI;
+input string AI_Endpoint              = "https://api.openai.com/v1/chat/completions";
 input string AI_API_Key               = "";
 input string AI_OpenAI_URL            = "https://api.openai.com/v1/chat/completions";
 input string AI_OpenAI_Model          = "gpt-4o-mini";
@@ -583,6 +583,13 @@ bool ParseAISignalFromJson(const string raw, datetime now, AISignal &sig)
    return true;
 }
 
+bool IsOpenAIEndpoint(const string endpoint)
+{
+   string u = ToUpperCopy(TrimCopy(endpoint));
+   if(u == "") return false;
+   return (StringFind(u, "API.OPENAI.COM") >= 0 || StringFind(u, "/CHAT/COMPLETIONS") >= 0);
+}
+
 bool PollAISignal(AISignal &sig, double atr_pips, double ema_slope_pips)
 {
    sig = EmptyAISignal();
@@ -605,23 +612,26 @@ bool PollAISignal(AISignal &sig, double atr_pips, double ema_slope_pips)
    }
    g_last_ai_poll_time = now;
 
-   string endpoint = AI_Endpoint;
-   if(AI_Provider == AI_PROVIDER_OPENAI)
+   AIProvider provider = AI_Provider;
+   string endpoint = TrimCopy(AI_Endpoint);
+   if(endpoint == "" && AI_OpenAI_URL != "")
    {
-      if(endpoint == "") endpoint = AI_OpenAI_URL;
+      endpoint = TrimCopy(AI_OpenAI_URL);
+      provider = AI_PROVIDER_OPENAI;
    }
    if(endpoint == "")
    {
       g_last_ai_status = "NO_ENDPOINT";
       return false;
    }
+   bool useOpenAI = (provider == AI_PROVIDER_OPENAI || IsOpenAIEndpoint(endpoint));
 
    double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    double spread = GetSpreadInPips(_Symbol);
    string payload = "";
    string headers = "Content-Type: application/json\r\n";
-   if(AI_Provider == AI_PROVIDER_OPENAI)
+   if(useOpenAI)
    {
       headers += "Authorization: Bearer " + AI_API_Key + "\r\n";
       string userPrompt = StringFormat(
@@ -683,7 +693,7 @@ bool PollAISignal(AISignal &sig, double atr_pips, double ema_slope_pips)
       return false;
    }
 
-   if(AI_Provider == AI_PROVIDER_OPENAI)
+   if(useOpenAI)
    {
       string content = "";
       if(!JsonGetStringValue(body, "content", content))
