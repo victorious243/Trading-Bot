@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from bot.core.models import Bar, MarketState, Regime
 from bot.strategies.trend import TrendStrategy
 from bot.strategies.range import RangeStrategy
+from bot.strategies.scalper import ScalperMomentumStrategy
 
 
 def _bars(start: datetime, count: int, step: float, base: float = 1.1000) -> list[Bar]:
@@ -68,5 +69,41 @@ def test_range_strategy_generates_signal():
         confidence=0.8,
     )
     strat = RangeStrategy()
+    signal = strat.generate(state, bars, [])
+    assert signal is not None
+
+
+def test_scalper_strategy_generates_signal():
+    start = datetime(2026, 1, 28, 0, 0)
+    bars = []
+    price = 1.1000
+    # Strong trend with periodic pullbacks so scalper setup can trigger.
+    for i in range(60):
+        drift = 0.00008 if i % 5 else -0.00003
+        price += drift
+        bars.append(
+            Bar(
+                time=start + timedelta(minutes=15 * i),
+                open=price - 0.00005,
+                high=price + 0.0002,
+                low=price - 0.0002,
+                close=price,
+                volume=100,
+            )
+        )
+
+    state = MarketState(
+        symbol="EURUSD",
+        time=bars[-1].time,
+        regime_primary=Regime.TREND,
+        regime_secondary=Regime.MIXED,
+        trend_strength=0.001,
+        volatility=0.0009,
+        range_compression=0.001,
+        return_1=0.0001,
+        session="LONDON_NY",
+        confidence=0.8,
+    )
+    strat = ScalperMomentumStrategy()
     signal = strat.generate(state, bars, [])
     assert signal is not None

@@ -1,15 +1,27 @@
-# MT5 Intraday Forex Bot (Regime-Aware, Risk-First)
+# Scalper Bot for MT5 (Regime-Aware, Risk-First)
 
-This project scaffolds a production-minded MT5 Forex bot that trades intraday (M15–H1), prioritizes capital preservation, and **chooses no-trade frequently**. It uses rule-based strategies with an optional ML scoring hook and a hard risk manager that gates every order.
+This project provides a production-minded MT5 bot that trades intraday (M15–H1), prioritizes capital preservation, and can run in a higher-frequency **scalper mode**. It uses rule-based strategies with an optional ML scoring hook and a hard risk manager that gates every order.
 
 **Default mode is paper trading. Live trading requires explicit opt-in and evaluation.**
 
 ## Key Principles
-- No-trade is the default outcome unless conditions are strong.
+- No-trade remains valid, but scalper mode is designed to take more high-quality opportunities.
 - Market-regime aware (trend vs range, high/low volatility).
 - Hard Risk Manager can block any order.
 - No martingale, no grid doubling, no revenge trading.
 - ML is a quality gate only (never a trade executor).
+
+## Scalper Mode
+Enable in TOML:
+```
+enable_scalper = true
+scalper_only = true
+allow_mixed_regime = true
+```
+Recommended starting profile:
+```
+configs/scalper_eurusd.toml
+```
 
 ## Project Structure
 ```
@@ -68,7 +80,7 @@ When disabled, the bot runs exactly as before.
 ## Running (Paper Mode - Default)
 Uses MT5 for market data and internal paper execution:
 ```
-python -m bot.cli --config configs/eurusd.toml --mode paper
+python -m bot.cli --config configs/scalper_eurusd.toml --mode paper
 ```
 
 ## Running (Dry-Run Mode)

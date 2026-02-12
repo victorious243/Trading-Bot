@@ -1,7 +1,7 @@
 [project]
-name = "mt5-forex-ai-bot"
+name = "scalper-bot"
 version = "0.1.0"
-description = "Production-minded, regime-aware MT5 intraday Forex bot with strict risk controls."
+description = "Scalper-focused, regime-aware MT5 intraday bot with strict risk controls."
 requires-python = ">=3.10"
 readme = "README.md"
 license = { text = "MIT" }

@@ -50,6 +50,9 @@ class BotConfig:
     live_acknowledgement: str = ""
     enable_supply_demand: bool = False
     supply_demand_config_path: Optional[str] = None
+    enable_scalper: bool = False
+    scalper_only: bool = False
+    allow_mixed_regime: bool = False
     max_positions_per_symbol: int = 1
     max_daily_trades: int = 3
     max_daily_loss: float = 0.02
@@ -116,6 +119,9 @@ def load_config(path: str) -> BotConfig:
         live_acknowledgement=str(raw.get("live_acknowledgement", "")),
         enable_supply_demand=bool(raw.get("enable_supply_demand", False)),
         supply_demand_config_path=raw.get("supply_demand_config_path"),
+        enable_scalper=bool(raw.get("enable_scalper", False)),
+        scalper_only=bool(raw.get("scalper_only", False)),
+        allow_mixed_regime=bool(raw.get("allow_mixed_regime", False)),
         max_positions_per_symbol=int(raw.get("max_positions_per_symbol", 1)),
         max_daily_trades=int(raw.get("max_daily_trades", 3)),
         max_daily_loss=float(raw.get("max_daily_loss", 0.02)),
