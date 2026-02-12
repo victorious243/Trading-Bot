@@ -73,9 +73,7 @@ class HardRiskManager:
         if state.session == "OFF":
             return RiskDecision(False, "outside_session")
 
-        if state.confidence < cfg.min_regime_confidence:
-            return RiskDecision(False, "low_regime_confidence")
-        if state.regime_secondary == Regime.MIXED and not self.config.allow_mixed_regime:
+        if state.confidence < cfg.min_regime_confidence or state.regime_secondary == Regime.MIXED:
             return RiskDecision(False, "low_regime_confidence")
 
         if signal.rr < cfg.min_rr:

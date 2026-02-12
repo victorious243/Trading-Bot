@@ -1,12 +1,9 @@
-paper_trading = true
+€paper_trading = true
 dry_run = false
 live_enabled = true
 live_acknowledgement = "user_acknowledged_live_test"
 enable_supply_demand = false
 supply_demand_config_path = "configs/supply_demand.json"
-enable_scalper = false
-scalper_only = false
-allow_mixed_regime = false
 max_positions_per_symbol = 1
 max_daily_trades = 3
 max_daily_loss = 0.02

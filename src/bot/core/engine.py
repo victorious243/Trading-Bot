@@ -16,7 +16,6 @@ from bot.db.sqlite_store import SQLiteStore
 from bot.ml.filter import MLFilter
 from bot.strategies.trend import TrendStrategy
 from bot.strategies.range import RangeStrategy
-from bot.strategies.scalper import ScalperMomentumStrategy
 from bot.strategies.supply_demand_strategy import SupplyDemandStrategy
 from bot.snd.config import load_supply_demand_config
 from bot.storage.trade_journal import TradeJournal
@@ -43,13 +42,7 @@ class BotEngine:
         self.news = NewsRiskFilter(config.news_risk_window_minutes, config.news_window_pre_minutes, config.news_window_post_minutes)
         self.news.load_schedule(config.news_schedule_path)
         self.ml_filter = ml_filter or MLFilter()
-        self.strategies = []
-        if config.enable_scalper:
-            self.strategies.append(ScalperMomentumStrategy())
-        if not config.scalper_only:
-            self.strategies.extend([TrendStrategy(), RangeStrategy()])
-        if not self.strategies:
-            self.strategies = [TrendStrategy(), RangeStrategy()]
+        self.strategies = [TrendStrategy(), RangeStrategy()]
         self.sd_cfg = None
         if config.enable_supply_demand:
             self.sd_cfg = load_supply_demand_config(config.supply_demand_config_path)

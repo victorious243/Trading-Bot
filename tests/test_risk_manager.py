@@ -32,12 +32,6 @@ def _config():
     )
 
 
-def _config_allow_mixed():
-    cfg = _config()
-    cfg.allow_mixed_regime = True
-    return cfg
-
-
 def test_risk_rejects_low_rr():
     broker = PaperBroker()
     broker.seed_tick("EURUSD", Tick(datetime.utcnow(), 1.1000, 1.1001))
@@ -106,72 +100,3 @@ def test_risk_accepts_valid_trade():
     decision = risk.approve(signal, state)
     assert decision.approved is True
     assert decision.adjusted_size > 0
-
-
-def test_risk_rejects_mixed_regime_by_default():
-    broker = PaperBroker()
-    broker.seed_tick("EURUSD", Tick(datetime.utcnow(), 1.1000, 1.1001))
-    cfg = _config()
-    risk = HardRiskManager(cfg, broker)
-    signal = Signal(
-        symbol="EURUSD",
-        time=datetime(2026, 1, 28, 9, 0, 0),
-        strategy="scalper",
-        side=OrderSide.BUY,
-        order_type=OrderType.MARKET,
-        entry_price=1.1000,
-        stop_loss=1.0985,
-        take_profit=1.1018,
-        max_hold_minutes=60,
-        confidence=0.9,
-        rationale=["test"],
-    )
-    state = MarketState(
-        symbol="EURUSD",
-        time=signal.time,
-        regime_primary=Regime.TREND,
-        regime_secondary=Regime.MIXED,
-        trend_strength=0.001,
-        volatility=0.001,
-        range_compression=0.001,
-        return_1=0.0001,
-        session="LONDON_NY",
-        confidence=0.9,
-    )
-    decision = risk.approve(signal, state)
-    assert decision.approved is False
-    assert decision.reason == "low_regime_confidence"
-
-
-def test_risk_accepts_mixed_regime_when_enabled():
-    broker = PaperBroker()
-    broker.seed_tick("EURUSD", Tick(datetime.utcnow(), 1.1000, 1.1001))
-    cfg = _config_allow_mixed()
-    risk = HardRiskManager(cfg, broker)
-    signal = Signal(
-        symbol="EURUSD",
-        time=datetime(2026, 1, 28, 9, 0, 0),
-        strategy="scalper",
-        side=OrderSide.BUY,
-        order_type=OrderType.MARKET,
-        entry_price=1.1000,
-        stop_loss=1.0985,
-        take_profit=1.1018,
-        max_hold_minutes=60,
-        confidence=0.9,
-        rationale=["test"],
-    )
-    state = MarketState(
-        symbol="EURUSD",
-        time=signal.time,
-        regime_primary=Regime.TREND,
-        regime_secondary=Regime.MIXED,
-        trend_strength=0.001,
-        volatility=0.001,
-        range_compression=0.001,
-        return_1=0.0001,
-        session="LONDON_NY",
-        confidence=0.9,
-    )
-    decision = risk.approve(signal, state)
-    assert decision.approved is True
